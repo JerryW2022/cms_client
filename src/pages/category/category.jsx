@@ -1,16 +1,57 @@
 import React, { useState, useEffect } from "react";
-import { Card, Table, Button, message } from "antd";
+import { Card, Table, Button, message, Modal, Form } from "antd";
 import { PlusOutlined, ArrowRightOutlined } from "@ant-design/icons";
 import LinkButton from "../../components/link-button";
 import { reqCategories, reqUpdateCategory, reqAddCategory } from "../../api";
+import AddForm from "./add-form";
+import EditForm from "./edit-form";
 
 export default function Category() {
   const [loading, setLoading] = useState(false); // 是否正在获取数据中
-  const [categories, setCategories] = useState([]); // 一级分类列表
+  const [categories, setCategories] = useState([]); // Top Categories列表
   const [subCategories, setSubCategories] = useState([]); // 二级分类列表
   const [parentId, setParentId] = useState("0"); // 当前需要显示的分类列表的父分类ID
   const [parentName, setParentName] = useState(""); // 当前需要显示的分类列表的父分类名称
-  const [showStatus, setShowStatus] = useState(0); // 标识添加/更新的确认框是否显示, 0: 都不显示, 1: 显示添加, 2: 显示更新
+  const [isModalOpen, setIsModalOpen] = useState(0); // 标识add/edit的确认框是否显示, 0: 都不显示, 1: 显示add, 2: 显示edit
+  const [category, setCategory] = useState({});
+
+  const [form] = Form.useForm();
+
+  // 初始化Table所有列的数组
+  const initColumns = () => {
+    const columns = [
+      {
+        title: "Name",
+        dataIndex: "name",
+        key: "name",
+      },
+      {
+        title: "Action",
+        width: 300,
+        render: (category) => (
+          <span>
+            <LinkButton
+              onClick={() => {
+                showEdit(category);
+              }}
+            >
+              Edit
+            </LinkButton>
+            {parentId === "0" ? (
+              <LinkButton
+                onClick={() => {
+                  showSubCategories(category);
+                }}
+              >
+                View
+              </LinkButton>
+            ) : null}
+          </span>
+        ),
+      },
+    ];
+    return columns;
+  };
 
   // 异步获取一级/二级分类列表显示
   const getCategories = async () => {
@@ -24,25 +65,25 @@ export default function Category() {
       // 取出分类数组(可能是一级也可能二级的)
       const categories = result.data;
       if (parentId === "0") {
-        // 更新一级分类状态
+        // 更新Top Categories状态
         setCategories(categories);
       } else {
         // 更新二级分类状态
         setSubCategories(categories);
       }
     } else {
-      message.error("获取分类列表失败");
+      message.error("Failed to get category list");
     }
   };
 
-  // 显示指定一级分类对象的子列表
+  // 显示指定Top Categories对象的子列表
   const showSubCategories = (category) => {
     setParentId(category._id);
     setParentName(category.name);
     // getCategories();
   };
 
-  // 显示一级分类列表
+  // 显示Top Categories列表
   const showCategories = () => {
     // 更新为显示一列表的状态
     setParentId("0");
@@ -50,9 +91,68 @@ export default function Category() {
     setSubCategories([]);
   };
 
+  // Modal对话框点击取消按钮
+  const handleCancel = () => {
+    form.resetFields();
+    setIsModalOpen(0);
+  };
+
+  // 显示Add new的确认框
+  const showAddNew = () => {
+    setIsModalOpen(1);
+  };
+
+  // Add new category
+  const addCategory = async () => {
+    try {
+      const values = await form.validateFields();
+      setIsModalOpen(0);
+      // 收集数据, 并提交添加分类的请求
+      const { parentId, categoryName } = values;
+      // 清除输入数据
+      form.resetFields();
+      const result = await reqAddCategory(categoryName, parentId);
+      if (result.status === 0) {
+        console.log('success')
+        getCategories();
+        // if (parentId !== "0") {
+        //   getCategories(parentId);
+        // } else if (parentId === "0") {
+        //   getCategories("0");
+        // }
+      }
+    } catch (error) {
+      console.log("Form validation error", error);
+    }
+  };
+
+  // 显示Edit的确认框
+  const showEdit = (category) => {
+    setCategory(category);
+    setIsModalOpen(2);
+  };
+
+  // Edit分类
+  const editCategory = async () => {
+    try {
+      const values = await form.validateFields();
+      setIsModalOpen(0);
+      const categoryId = category._id;
+      const { categoryName } = values;
+      const result = await reqUpdateCategory({ categoryId, categoryName });
+
+      if (result.status === 0) {
+        getCategories();
+      }
+    } catch (error) {
+      console.log("Form validation error", error);
+    }
+  };
+
   useEffect(() => {
+    initColumns();
     getCategories();
-  }, [parentId]);
+  }, [parentId, category]);
 
   const title =
     parentId === "0" ? (
@@ -65,48 +165,40 @@ export default function Category() {
       </span>
     );
   const extra = (
-    <Button type="primary">
+    <Button type="primary" onClick={showAddNew}>
       <PlusOutlined />
       Add new
     </Button>
   );
-  // 初始化Table所有列的数组
-  const columns = [
-    {
-      title: "Name",
-      dataIndex: "name",
-      key: "name",
-    },
-    {
-      title: "Action",
-      width: 300,
-      render: (category) => (
-        <span>
-          <LinkButton>Edit</LinkButton>
-          {parentId === "0" ? (
-            <LinkButton
-              onClick={() => {
-                showSubCategories(category);
-              }}
-            >
-              View
-            </LinkButton>
-          ) : null}
-        </span>
-      ),
-    },
-  ];
 
   return (
     <Card title={title} extra={extra}>
       <Table
         bordered
         loading={loading}
-        columns={columns} //不确定？？
+        columns={initColumns()}
         dataSource={parentId === "0" ? categories : subCategories}
         rowKey="_id"
         pagination={{ defaultPageSize: 5, showQuickJumper: true }}
       />
+      <Modal
+        forceRender
+        title="Add new category"
+        open={isModalOpen === 1}
+        onOk={addCategory}
+        onCancel={handleCancel}
+      >
+        <AddForm categorys={categories} parentId={parentId} form={form} />
+      </Modal>
+      <Modal
+        forceRender
+        title="Edit category"
+        open={isModalOpen === 2}
+        onOk={editCategory}
+        onCancel={handleCancel}
+      >
+        <EditForm categoryName={category.name} form={form} />
+      </Modal>
     </Card>
   );
 }
