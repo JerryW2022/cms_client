@@ -18,14 +18,14 @@
         d. git commit -m "init"
     3). 将本地仓库推送到远程仓库
         git remote add origin url
-        git push origin master
+        git push origin main
     4). 在本地创建dev分支, 并推送到远程
         git checkout -b dev
         git push origin dev
     5). 如果本地有修改
         git add .
         git commit -m "xxx"
-        git push origin dev
+        git push -u origin dev
     6). 新的同事: 克隆仓库
         git clone url
         git checkout -b dev origin/dev
