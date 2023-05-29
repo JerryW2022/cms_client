@@ -54,7 +54,9 @@ export default function Category() {
     return columns;
   };
 
-  // 异步获取一级/二级分类列表显示
+  /*
+  异步获取一级/二级分类列表显示
+   */
   const getCategories = async () => {
     // 在发请求前, 显示loading
     setLoading(true);
@@ -112,6 +114,7 @@ export default function Category() {
       const { parentId, categoryName } = values;
       setParentId(parentId);
       if (parentId !== "0") {
+        // getCategories(parentId)
         const targetCategory = categories.find(
           (category) => category._id === parentId
         );
@@ -128,6 +131,7 @@ export default function Category() {
       form.resetFields();
       //add it to database
       reqAddCategory(categoryName, parentId);
+      getCategories();
     } catch (error) {
       console.log("Form validation error", error);
     }
@@ -185,7 +189,7 @@ export default function Category() {
         columns={initColumns()}
         dataSource={parentId === "0" ? categories : subCategories}
         rowKey="_id"
-        pagination={{ defaultPageSize: 5, showQuickJumper: true }}
+        pagination={{ defaultPageSize: 8, showQuickJumper: true }}
       />
       <Modal
         forceRender
