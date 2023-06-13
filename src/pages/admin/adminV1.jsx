@@ -1,5 +1,5 @@
 import React from "react";
-import { Routes, Route, Navigate, Outlet } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { Layout } from "antd";
 
 import memoryUtils from "../../utils/memoryUtils";
@@ -39,30 +39,18 @@ export default function Admin() {
         <Header>header</Header>
         <Content style={{ margin: 20, backgroundColor: "white" }}>
           <Routes>
-            {/* /{with some paths} */}
-            <Route path="/*" >
-              <Route path="category" element={<Category />} />
-              <Route path="product/*" element={<Product />} />
-              <Route path="role" element={<Role />} />
-              <Route path="user" element={<User />} />
-              <Route path="charts">
-                <Route path="bar" element={<Bar />} />
-                <Route path="line" element={<Line />} />
-                <Route path="pie" element={<Pie />} />
-              </Route>
-              <Route path="order" element={<Order />} />
-              <Route
-                path="home"
-                element={
-                  <div className="home">
-                    Welcome to React Content Management System!
-                  </div>
-                }
-              />
-              <Route path="*" element={<Navigate to="/home" />} />
+            <Route path="home" element={<Home />} />
+            <Route path="category" element={<Category />} />
+            <Route path="product" element={<Product />} />
+            <Route path="role" element={<Role />} />
+            <Route path="user" element={<User />} />
+            <Route path="charts">
+              <Route path="bar" element={<Bar />} />
+              <Route path="line" element={<Line />} />
+              <Route path="pie" element={<Pie />} />
             </Route>
-            {/* root path is / */}
-            <Route path="*" element={<Navigate to="/home" />} />
+            <Route path="order" element={<Order />} />
+            <Route path="/*" element={<Navigate to="/home" />} />
           </Routes>
         </Content>
         <Footer style={{ textAlign: "center", color: "#cccccc" }}>
