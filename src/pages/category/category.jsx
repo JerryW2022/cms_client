@@ -40,7 +40,8 @@ export default function Category() {
             {parentId === "0" ? (
               <LinkButton
                 onClick={() => {
-                  showSubCategories(category);
+                  viewSubCategory(category);
+                  // console.log(category);
                 }}
               >
                 View
@@ -53,7 +54,9 @@ export default function Category() {
     return columns;
   };
 
-  // 异步获取一级/二级分类列表显示
+  /*
+  异步获取一级/二级分类列表显示
+   */
   const getCategories = async () => {
     // 在发请求前, 显示loading
     setLoading(true);
@@ -76,15 +79,14 @@ export default function Category() {
     }
   };
 
-  // 显示指定Top Categories对象的子列表
-  const showSubCategories = (category) => {
+  // View sub category
+  const viewSubCategory = (category) => {
     setParentId(category._id);
     setParentName(category.name);
-    // getCategories();
   };
 
   // 显示Top Categories列表
-  const showCategories = () => {
+  const showTopCategories = () => {
     // 更新为显示一列表的状态
     setParentId("0");
     setParentName("");
@@ -108,19 +110,28 @@ export default function Category() {
       const values = await form.validateFields();
       setIsModalOpen(0);
       // 收集数据, 并提交添加分类的请求
+      // console.log(values);
       const { parentId, categoryName } = values;
-      // 清除输入数据
-      form.resetFields();
-      const result = await reqAddCategory(categoryName, parentId);
-      if (result.status === 0) {
-        console.log('success')
-        getCategories();
-        // if (parentId !== "0") {
-        //   getCategories(parentId);
-        // } else if (parentId === "0") {
-        //   getCategories("0");
-        // }
+      setParentId(parentId);
+      if (parentId !== "0") {
+        // getCategories(parentId)
+        const targetCategory = categories.find(
+          (category) => category._id === parentId
+        );
+        if (targetCategory) {
+          const targetName = targetCategory.name;
+          // console.log(targetName);
+          setParentName(targetName);
+        } else {
+          console.log("No matching category found");
+        }
       }
+
+      // 清除Modal输入的数据
+      form.resetFields();
+      //add it to database
+      reqAddCategory(categoryName, parentId);
+      getCategories();
     } catch (error) {
       console.log("Form validation error", error);
     }
@@ -140,7 +151,6 @@ export default function Category() {
       const categoryId = category._id;
       const { categoryName } = values;
       const result = await reqUpdateCategory({ categoryId, categoryName });
-
       if (result.status === 0) {
         getCategories();
       }
@@ -152,14 +162,14 @@ export default function Category() {
   useEffect(() => {
     initColumns();
     getCategories();
-  }, [parentId, category]);
+  }, [parentId]);
 
   const title =
     parentId === "0" ? (
       "Top Category"
     ) : (
       <span>
-        <LinkButton onClick={showCategories}>Top Category</LinkButton>
+        <LinkButton onClick={showTopCategories}>Top Category</LinkButton>
         <ArrowRightOutlined style={{ marginRight: 5 }} />
         <span>{parentName}</span>
       </span>
@@ -179,7 +189,7 @@ export default function Category() {
         columns={initColumns()}
         dataSource={parentId === "0" ? categories : subCategories}
         rowKey="_id"
-        pagination={{ defaultPageSize: 5, showQuickJumper: true }}
+        pagination={{ defaultPageSize: 8, showQuickJumper: true }}
       />
       <Modal
         forceRender

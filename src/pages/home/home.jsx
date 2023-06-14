@@ -1,8 +1,8 @@
-import React from 'react'
-import './home.less'
+import React from "react";
+import { Outlet } from "react-router-dom";
+
+import "./home.less";
 
 export default function Home() {
-  return (
-    <div className="home">Welcome to React Content Management System!</div>
-  );
+  return;
 }

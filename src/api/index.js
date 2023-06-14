@@ -25,6 +25,8 @@ export const reqAddUser = (user) =>
 export const reqCategories = (parentId) => ajax(BASE + '/manage/category/list', {parentId})
 
 // 添加分类
+// export const reqAddCategory = ({categoryName, parentId}) => ajax(BASE + '/manage/category/add', {categoryName, parentId}, 'POST')
+//解构赋值的方法
 export const reqAddCategory = (categoryName, parentId) => ajax(BASE + '/manage/category/add', {categoryName, parentId}, 'POST')
 
 // 更新分类
@@ -33,6 +35,7 @@ export const reqUpdateCategory = ({categoryId, categoryName}) => ajax(BASE + '/m
 // 获取一个分类
 
 // 获取商品分页列表
+export const reqProducts = (pageNum,pageSize) => ajax(BASE + "/manage/product/list",{pageNum,pageSize});
 // 更新商品的状态(上架/下架)
 
 
@@ -40,11 +43,23 @@ export const reqUpdateCategory = ({categoryId, categoryName}) => ajax(BASE + '/m
 /*
 搜索商品分页列表 (根据商品名称/商品描述)
 searchType: 搜索的类型, productName/productDesc
- */
-
+通过使用方括号和对象属性计算的方式，将 searchType 的值作为对象的属性名，然后将 searchKeyword 的值作为该属性的值。
+假设 searchType 的值为 "name"，searchKeyword 的值为 "apple"，那么生成的对象属性为 { name: "apple" }。
+*/
+export const reqSearchProducts = ({ pageNum, pageSize, searchKeyword, searchType }) =>
+  ajax(BASE + "/manage/product/search", {
+    pageNum,
+    pageSize,
+    [searchType]: searchKeyword,
+  });
 
 // 搜索商品分页列表 (根据商品描述)
-
+/* export const reqSearchProduct2 = (pageNum, pageSize, searchKeyword) =>
+  ajax(BASE + "/manage/product/search", {
+    pageNum,
+    pageSize,
+    searchKeyword,
+  }); */
 
 // 删除指定名称的图片
 
@@ -84,3 +99,4 @@ export const reqWeather = (city) => {
   });
 };
 // reqWeather('Sydney');
+
